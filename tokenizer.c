@@ -152,12 +152,10 @@ int main(int argc, char* argv[]) {
         checkForEOF(fp);
     }
 
-    //printf("%lu\n", sizeof(enum token));
-
-    int arraySize = sizeof(BUF) / sizeof(enum token);
-    for (int i = 0; i < arraySize; i++) {
-        //printf("%d\n", BUF[i]);
+    for (int i = 0; i < currentEnd; i++) {
+        printf("%d ", BUF[i]);
     }
+    printf("\n");
 
     fclose(fp);
     return 0;
