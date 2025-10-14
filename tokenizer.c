@@ -21,17 +21,20 @@ enum temp {
     TEST
 };
 
+// one important type : regex_t -> opaque struct
+// four important functions: regcomp(&regex, str, compilerMode), regexec(&regex, otherStr, 0, NULL, 0), regerror(reti, &regex, bufErr, sizeof(bufErr)), regfree(&regex);
 int isLetter(char c) {
     regex_t regex;
     int reti;
-    char msgBuf[126];
+    char bufErr[126];
     int found = -1;
     char str[2] = {c, '\0'};
     
     reti = regcomp(&regex, "[A-Z]", REG_EXTENDED);
     if (reti) {
-        regerror(reti, &regex, msgBuf, sizeof(msgBuf));
-        fprintf(stderr, "Error: %s\n", msgBuf);
+        regerror(reti, &regex, bufErr, sizeof(bufErr));
+        perror(bufErr);
+        exit(EXIT_FAILURE);
     }
 
     reti = regexec(&regex, str, 0, NULL, 0);
@@ -40,14 +43,16 @@ int isLetter(char c) {
     } else if (reti == REG_NOMATCH) {
         found = 0;
     } else {
-        regerror(reti, &regex, msgBuf, sizeof(msgBuf));
-        fprintf(stderr, "%s\n", msgBuf);
+        regerror(reti, &regex, bufErr, sizeof(bufErr));
+        perror(bufErr);
+        exit(EXIT_FAILURE);
     }
 
     regfree(&regex);
     return found;
 }
 
+// practiced methods by doing again then fixing to look the same lol
 int isNumber(char c) {
     regex_t regex;
     int reti;
@@ -77,6 +82,7 @@ int isNumber(char c) {
     return found;
 }
 
+/*
 int isLetterSimple(char c) {
     return (c >= 'A' && c <= 'Z');
 }
@@ -84,6 +90,7 @@ int isLetterSimple(char c) {
 int isNumberSimple(char c) {
     return (c >= '0' && c <= '9');
 }
+*/
 
 enum token scanToken(FILE* fp) {
     char c = fgetc(fp);
