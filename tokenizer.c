@@ -26,6 +26,7 @@ int isLetter(char c) {
     int reti;
     char msgBuf[126];
     int found = -1;
+    char str[2] = {c, '\0'};
     
     reti = regcomp(&regex, "[A-Z]", REG_EXTENDED);
     if (reti) {
@@ -33,7 +34,7 @@ int isLetter(char c) {
         fprintf(stderr, "Error: %s\n", msgBuf);
     }
 
-    reti = regexec(&regex, &c, 0, NULL, 0);
+    reti = regexec(&regex, str, 0, NULL, 0);
     if (!reti) {
         found = 1;
     } else if (reti == REG_NOMATCH) {
@@ -50,8 +51,9 @@ int isLetter(char c) {
 int isNumber(char c) {
     regex_t regex;
     int reti;
-    char* bufErr[128];
+    char bufErr[128];
     int found = -1;
+    char str[2] = {c, '\0'};
 
     reti = regcomp(&regex, "[0-9]", REG_EXTENDED);
     if (reti != 0) {
@@ -60,7 +62,7 @@ int isNumber(char c) {
         exit(EXIT_FAILURE);
     }
 
-    reti = regexec(&regex, &c, 0, NULL, 0);
+    reti = regexec(&regex, str, 0, NULL, 0);
     if (reti == 0) {
         found = 1;
     } else if (reti == REG_NOMATCH) {
@@ -75,50 +77,64 @@ int isNumber(char c) {
     return found;
 }
 
+int isLetterSimple(char c) {
+    return (c >= 'A' && c <= 'Z');
+}
+
+int isNumberSimple(char c) {
+    return (c >= '0' && c <= '9');
+}
+
 enum token scanToken(FILE* fp) {
     char c = fgetc(fp);
-    //if (c == EOF) return ERROR;
 
     if (c == ' ') {
-        printf("WHITESPACE ");
+        printf("WHITESPACE\n");
         return WHITE_SPACE;
 
     } else if (c == '+') {
-        printf("ADD ");
+        printf("ADD\n");
         return OPERATOR_PLUS;
 
     } else if (c == '-') {
-        printf("SUB ");
+        printf("SUB\n");
         return OPERATOR_SUBTRACT;
 
     } else if (c == '/') {
-        printf("DIVIDE ");
+        printf("DIVIDE\n");
         return OPERATOR_DIVIDE;
 
     } else if (c == '=') {
-        printf("ASSIGN ");
+        printf("ASSIGN\n");
         return OPERATOR_ASSIGNMENT;
 
     } else if (isLetter(c)) {
         char d = fgetc(fp);
-
         while(isLetter(d)) {
             d = fgetc(fp);
         }
         ungetc(d, fp);
-        printf("ID ");
+        printf("ID\n");
         return IDENTIFIER;
 
     } else if (isNumber(c)) {
         char d = fgetc(fp);
-
         while(isNumber(d)) {
             d = fgetc(fp);
         }
         ungetc(d, fp);
-        printf("CONST ");
+        printf("CONST\n");
         return CONSTANT;
     }
+
+    printf("%c\n", c);
+    return ERROR;
+}
+
+void checkForEOF(FILE* fp) {
+    char c = fgetc(fp);
+    if (c == EOF) return;
+    ungetc(c, fp);
 }
 
 int main(int argc, char* argv[]) {
@@ -128,17 +144,21 @@ int main(int argc, char* argv[]) {
         perror("Could not open file");
     }
 
-    enum token BUF[sizeof(enum token) * MAXIMUM_LINE_SIZE];
+    enum token BUF[MAXIMUM_LINE_SIZE];
     int currentEnd = 0;
     while (!feof(fp)) {
         BUF[currentEnd] = scanToken(fp);
         currentEnd++;
+        checkForEOF(fp);
     }
+
+    //printf("%lu\n", sizeof(enum token));
 
     int arraySize = sizeof(BUF) / sizeof(enum token);
     for (int i = 0; i < arraySize; i++) {
         //printf("%d\n", BUF[i]);
     }
 
+    fclose(fp);
     return 0;
 }
