@@ -6,21 +6,6 @@
 
 #define MAXIMUM_LINE_SIZE 1208
 
-enum token { // size of enum in memory is int (4 bytes)
-    IDENTIFIER,
-    CONSTANT,
-    OPERATOR_PLUS,
-    OPERATOR_SUBTRACT,
-    OPERATOR_DIVIDE,
-    OPERATOR_ASSIGNMENT,
-    WHITE_SPACE,
-    ERROR,
-};
-
-enum temp {
-    TEST
-};
-
 // one important type : regex_t -> opaque struct
 // four important functions: regcomp(&regex, str, compilerMode), regexec(&regex, otherStr, 0, NULL, 0), regerror(reti, &regex, bufErr, sizeof(bufErr)), regfree(&regex);
 int isLetter(char c) {
@@ -152,11 +137,21 @@ int main(int argc, char* argv[]) {
     }
 
     enum token BUF[MAXIMUM_LINE_SIZE];
+    token_info tokenInfoArr[MAXIMUM_LINE_SIZE * sizeof(token_info)];
     int currentEnd = 0;
     while (!feof(fp)) {
         BUF[currentEnd] = scanToken(fp);
         currentEnd++;
         checkForEOF(fp);
+    }
+
+    switch(BUF[0]) {
+        case 0:
+            printf("We have an identifier, %d\n", BUF[0]);
+            break;
+        default:
+            printf("Looks like we didn't have an identifier as the first symbol!\n");
+            break;
     }
 
     for (int i = 0; i < currentEnd; i++) {
